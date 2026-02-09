@@ -76,7 +76,7 @@ Ključne konstante u kodu (primjer):
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
-#define ON_TIME_MS  400  // koliko dugo traka ostaje upaljena nakon zadnje detekcije (10 s)
+#define ON_TIME_MS  400  // koliko dugo traka ostaje upaljena nakon zadnje detekcije 
 #define PULSE_DELAY 40     // kašnjenje između paljenja pojedine LED-ice (ms)
 
 ```
