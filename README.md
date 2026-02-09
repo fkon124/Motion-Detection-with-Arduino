@@ -12,11 +12,11 @@ LED-ice se pale **sekvencijalno (pulse efekt)** kada se detektira pokret, a gase
 
 ## Značajke
 
-- 🔍 Detekcija pokreta pomoću PIR senzora  
-- 💡 Sekvencijalno paljenje i gašenje LED-ica  
-- ⏱️ Automatsko gašenje nakon neaktivnosti  
-- ⚡ Jednostavna konfiguracija  
-- 📦 Korištenje FastLED biblioteke  
+- Detekcija pokreta pomoću PIR senzora  
+- Sekvencijalno paljenje i gašenje LED-ica  
+- Automatsko gašenje nakon neaktivnosti  
+- Jednostavna konfiguracija  
+- Korištenje FastLED biblioteke  
 
 ---
 
