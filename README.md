@@ -69,12 +69,16 @@ Ključne konstante u kodu (primjer):
 
 ```cpp
 #define LED_PIN     4      // DI s LED trake na D4
-#define NUM_LEDS    30     // broj LED-ica na traci
+#define NUM_LEDS    9     // PROMIJENI na stvaran broj LED-ica na traci
 #define PIR_PIN     2      // SIG s PIR senzora na D2
 
-#define BRIGHTNESS  150    // 0–255
-#define ON_TIME_MS  10000  // koliko dugo traka ostaje upaljena nakon zadnje detekcije (ms)
-#define PULSE_DELAY 40     // kašnjenje između paljenja/gasenja pojedine LED-ice (ms)
+#define BRIGHTNESS  100    // 0–255
+#define LED_TYPE    WS2812B
+#define COLOR_ORDER GRB
+
+#define ON_TIME_MS  400  // koliko dugo traka ostaje upaljena nakon zadnje detekcije (10 s)
+#define PULSE_DELAY 40     // kašnjenje između paljenja pojedine LED-ice (ms)
+
 ```
 
 ---
@@ -90,7 +94,7 @@ U Arduino kodu možeš prilagoditi:
 - Boju LED‑ica (u funkciji za paljenje trake), npr.:
 
 ```cpp
-leds[i] = CRGB::White;   // možeš staviti CRGB::Red, CRGB::Blue, CRGB(0, 255, 0), ...
+leds[i] = CRGB::Blue;   // možeš staviti CRGB::Red, CRGB::White, CRGB(0, 255, 0), ...
 ```
 
 ---
