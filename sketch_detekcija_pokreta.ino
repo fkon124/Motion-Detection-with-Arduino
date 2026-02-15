@@ -2,7 +2,7 @@
 
 // ----- PODEŠAVANJA -----
 #define LED_PIN     4      // DI s LED trake na D4
-#define NUM_LEDS    9     // PROMIJENI na stvaran broj LED-ica na traci
+#define NUM_LEDS    6     // PROMIJENI na stvaran broj LED-ica na traci
 #define PIR_PIN     2      // SIG s PIR senzora na D2
 
 #define BRIGHTNESS  100    // 0–255
