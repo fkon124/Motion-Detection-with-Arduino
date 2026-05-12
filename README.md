@@ -1,122 +1,203 @@
-## Automatsko upravljanje LED trakom pomoću PIR senzora (Arduino)
+# Pametna LED rasvjeta s PIR senzorom, LDR-om i potenciometrom (Arduino)
 
-Ovaj projekt prikazuje jednostavan **pametni sustav rasvjete** temeljen na **Arduino** mikroupravljaču, **PIR senzoru pokreta** i **adresabilnoj LED traci** (npr. WS2812B).  
-Sustav detektira pokret pomoću PIR senzora i tada pali LED traku s efektom „pulsa” (LED-ice se pale jedna po jedna). Nakon određenog vremena bez pokreta, LED-ice se gase istim efektom.
+Ovaj projekt prikazuje napredniji sustav **automatske LED rasvjete** temeljen na **Arduino** mikroupravljaču, **PIR senzoru pokreta**, **LDR senzoru svjetla**, **potenciometru** i **adresabilnoj LED traci** (WS2812B / NeoPixel).
 
-Projekt je idealan kao uvod u **ugrađene sustave** i **kućnu automatizaciju**.
+Sustav automatski pali LED traku kada:
+
+* PIR senzor detektira pokret
+* prostorija je dovoljno tamna (LDR)
+
+Svjetlina LED trake može se ručno podešavati pomoću potenciometra, a LED-ice se pale i gase elegantnim „pulse” efektom.
+
+Projekt je idealan kao uvod u:
+
+* ugrađene sustave (embedded systems)
+* pametnu rasvjetu
+* kućnu automatizaciju
+* rad sa senzorima i adresabilnim LED trakama
 
 ---
 
-## Značajke
+# Značajke
 
-- **Automatsko paljenje rasvjete** pri detekciji pokreta
-- **Puls efekt** – LED-ice se pale/gase jedna po jedna
-- **Podesivo vrijeme svijetljenja** nakon zadnje detekcije pokreta
-- **Podesiva brzina efekta** (brži/sporiji „puls”)
-- Jednostavna nadogradnja (npr. senzor svjetla, Wi-Fi, dodatne scene rasvjete)
+* Automatsko paljenje LED rasvjete pri detekciji pokreta
+* Rasvjeta radi samo u mraku pomoću LDR senzora
+* Podesiva svjetlina pomoću potenciometra
+* „Pulse” efekt paljenja i gašenja LED-ica
+* Automatsko gašenje nakon određenog vremena bez pokreta
+* Jednostavna nadogradnja za Wi-Fi, dodatne efekte i pametne funkcije
 
 ---
 
-## Hardver
+# Hardver
 
 Potrebne komponente:
 
-- Arduino (npr. **Arduino Uno**, Nano ili kompatibilan)
-- **PIR senzor pokreta** (npr. HC‑SR501 ili sličan)
-- **Adresabilna LED traka** (npr. WS2812B / „NeoPixel”)
-- Izvor napajanja 5 V (ovisno o broju LED‑ica)
-- Povezivanje žicama (jumper wires), po želji breadboard
-
-### Shema spajanja
-
-- **LED traka**
-  - `5V` LED trake → `5V` napajanja (po potrebi eksterno, s GND zajedničkim s Arduinom)
-  - `GND` LED trake → `GND` Arduina
-  - `DI` (Data In) LED trake → **D4** na Arduinu
-
-- **PIR senzor**
-  - `VCC` PIR senzora → `5V` Arduina (ili prema specifikaciji senzora)
-  - `GND` PIR senzora → `GND` Arduina
-  - `SIG` (signal) PIR senzora → **D2** na Arduinu
-
-> Napomena: Ako koristiš veću LED traku (puno LED‑ica), preporučuje se **posebno 5 V napajanje** za LED traku, uz zajednički GND s Arduinom.
+* Arduino Uno / Nano / kompatibilna pločica
+* PIR senzor pokreta (npr. HC-SR501)
+* WS2812B / NeoPixel adresabilna LED traka
+* LDR fotootpornik
+* Potenciometar (10k preporučeno)
+* Otpornik za LDR (npr. 10kΩ)
+* 5 V napajanje
+* Jumper žice i po želji breadboard
 
 ---
 
-## Softver i ovisnosti
+# Shema spajanja
 
-- **Arduino IDE** (preporučeno zadnja verzija)  
+## LED traka
+
+* `5V` → 5V napajanje
+* `GND` → GND Arduina
+* `DI` → D4 na Arduinu
+
+## PIR senzor
+
+* `VCC` → 5V
+* `GND` → GND
+* `SIG` → D2
+
+## LDR senzor
+
+* Jedan kraj LDR-a → 5V
+* Drugi kraj → A0 i otpornik prema GND
+
+## Potenciometar
+
+* Jedan kraj → 5V
+* Drugi kraj → GND
+* Srednji pin → A1
+
+> Napomena: Kod većeg broja LED-ica preporučuje se zasebno 5 V napajanje za LED traku uz zajednički GND s Arduinom.
+
+---
+
+# Softver i ovisnosti
+
+Potrebno:
+
+* Arduino IDE
   `https://www.arduino.cc/en/software`
-- Arduino board paket za tvoju pločicu (npr. „Arduino AVR Boards” za Uno/Nano)
-- Biblioteka **FastLED**:
-  - Arduino IDE → **Sketch → Include Library → Manage Libraries…**
-  - pretraži **“FastLED”** i instaliraj
+
+* Biblioteka **FastLED**
+
+  * Arduino IDE → `Sketch → Include Library → Manage Libraries`
+  * pretraži `"FastLED"` i instaliraj biblioteku
 
 ---
 
-## Arduino kod
+# Arduino kod
 
-Kod koji očekuje ovaj README temelji se na sljedećim postavkama:
-
-- LED traka na pinu **D4**
-- PIR senzor na pinu **D2**
-- Adresabilna LED traka tipa **WS2812B**
-- Efekt: „puls” (LED‑ice se pale/gase redom)
-
-U projekt dodaj `.ino` datoteku i u nju kopiraj kod koji smo ranije definirali (ili svoju prilagođenu verziju).
-
-Ključne konstante u kodu (primjer):
+Projekt koristi sljedeće pinove i postavke:
 
 ```cpp
-#define LED_PIN     4      // DI s LED trake na D4
-#define NUM_LEDS    9     // broj LED-ica na traci
-#define PIR_PIN     2      // SIG s PIR senzora na D2
+#define LED_PIN     4
+#define NUM_LEDS    6
+#define PIR_PIN     2
+#define LDR_PIN     A0
+#define POT_PIN     A1
+```
 
-#define BRIGHTNESS  100    // 0–255
-#define ON_TIME_MS  400  // koliko dugo traka ostaje upaljena nakon zadnje detekcije (ms)
-#define PULSE_DELAY 40     // kašnjenje između paljenja/gasenja pojedine LED-ice (ms)
+Ključne postavke efekata:
+
+```cpp
+#define ON_TIME_MS   3000
+#define PULSE_DELAY  40
+#define LDR_THRESHOLD 400
 ```
 
 ---
 
-## Konfiguracija
+# Kako sustav radi
 
-U Arduino kodu možeš prilagoditi:
+1. PIR senzor detektira pokret
+2. LDR provjerava je li prostor dovoljno taman
+3. Ako su oba uvjeta zadovoljena:
 
-- **`NUM_LEDS`** – stvarni broj LED‑ica na tvojoj LED traci
-- **`BRIGHTNESS`** – ukupni intenzitet rasvjete (0–255)
-- **`ON_TIME_MS`** – koliko dugo LED‑ice ostaju upaljene nakon zadnje detekcije pokreta
-- **`PULSE_DELAY`** – brzina „pulsa” (manje = brže, veće = sporije)
-- Boju LED‑ica (u funkciji za paljenje trake), npr.:
+   * LED traka se pali „pulse” efektom
+4. Potenciometar određuje svjetlinu LED-ica u stvarnom vremenu
+5. Nakon isteka vremena bez pokreta:
+
+   * LED traka se postupno gasi
+
+---
+
+# Konfiguracija
+
+U kodu možeš prilagoditi:
+
+| Konstanta       | Opis                                          |
+| --------------- | --------------------------------------------- |
+| `NUM_LEDS`      | broj LED-ica                                  |
+| `ON_TIME_MS`    | vrijeme svijetljenja nakon pokreta            |
+| `PULSE_DELAY`   | brzina efekta                                 |
+| `LDR_THRESHOLD` | osjetljivost na mrak                          |
+| boju LED-ica    | npr. `CRGB::Blue`, `CRGB::White`, `CRGB::Red` |
+
+Primjer promjene boje:
 
 ```cpp
-leds[i] = CRGB::Blue;   // možeš staviti CRGB::Red, CRGB::Blue, CRGB(0, 255, 0), ...
+leds[i] = CRGB::White;
 ```
 
 ---
 
-## Kako pokrenuti projekt
+# Podešavanje LDR senzora
 
-1. **Kloniraj ili preuzmi** ovaj repozitorij.
-2. Otvori **Arduino IDE** i učitaj `.ino` datoteku s kodom.
-3. U izborniku **Tools → Board** odaberi svoju Arduino pločicu.
-4. U **Tools → Port** odaberi odgovarajući COM port.
-5. Klikni **Verify** (✔) za kompilaciju, zatim **Upload** (→) za slanje koda na Arduino.
-6. Spoji hardver prema shemi spajanja i napajaj sustav.
+Za pravilno podešavanje granice mraka koristi `Serial Monitor`.
 
-Kada PIR senzor detektira pokret, LED traka će se upaliti efektom „pulsa”. Ako nema pokreta određeno vrijeme (`ON_TIME_MS`), LED‑ice će se postupno ugasiti.
+U kodu odkomentiraj:
 
----
+```cpp
+// Serial.print("LDR: "); Serial.println(ldrValue);
+```
 
-## Moguća proširenja
+Zatim prati vrijednosti senzora i prilagodi:
 
-- Dodavanje **LDR (senzor svjetla)** tako da se rasvjeta pali samo u mraku
-- Dodavanje **Wi‑Fi** (npr. ESP8266/ESP32) i web sučelja za konfiguraciju parametara
-- Više efekata rasvjete (npr. „theater chase”, „rainbow”, različite scene)
-- Ugradnja sustava u stvarni prostor (hodnik, stepenište, ormarić, radni stol)
+```cpp
+#define LDR_THRESHOLD 400
+```
+
+Manja vrijednost = potrebno je više mraka za paljenje.
 
 ---
 
-## Napomena
+# Kako pokrenuti projekt
 
-- Ovaj projekt izrađen je u edukacijske svrhe.
+1. Kloniraj ili preuzmi repozitorij
+2. Otvori `.ino` datoteku u Arduino IDE-u
+3. Instaliraj FastLED biblioteku
+4. Odaberi svoju Arduino pločicu u:
+
+   * `Tools → Board`
+5. Odaberi COM port:
+
+   * `Tools → Port`
+6. Klikni:
+
+   * `Verify`
+   * `Upload`
+7. Spoji hardver prema shemi
+
+Nakon uploadanja sustav će automatski raditi.
+
+---
+
+# Moguća proširenja
+
+* ESP8266 / ESP32 Wi-Fi kontrola
+* Web sučelje za podešavanje
+* RGB animacije i scene
+* Reakcija na glazbu
+* OLED zaslon za prikaz senzora
+* Upravljanje preko mobilne aplikacije
+* Integracija sa smart home sustavima
+
+---
+
+# Napomena
+
+* Projekt je izrađen u edukacijske svrhe.
+* Vrijednosti senzora mogu varirati ovisno o komponentama i osvjetljenju prostora.
+* Za veće LED trake koristi zasebno napajanje dovoljne snage.
