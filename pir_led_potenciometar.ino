@@ -1,52 +1,67 @@
 #include <FastLED.h>
 
-// ----- PODEŠAVANJA -----
+// ----- PODEŠAVANJA PIN-OVA -----
 #define LED_PIN     4      // DI s LED trake na D4
-#define NUM_LEDS    6     // PROMIJENI na stvaran broj LED-ica na traci
+#define NUM_LEDS    6      // Broj LED-ica
 #define PIR_PIN     2      // SIG s PIR senzora na D2
-#define POT_PIN     A0     // Potenciometar na analognom pinu A0
+#define LDR_PIN     A0     // LDR foto-otpornik na A0
+#define POT_PIN     A1     // Potenciometar na A1
 
-#define BRIGHTNESS  30    // 0–255 (početna vrijednost, mijenja se potenciometrom)
+// ----- POSTAVKE EFEKATA -----
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
-
-#define ON_TIME_MS  400  // koliko dugo traka ostaje upaljena nakon zadnje detekcije 
-#define PULSE_DELAY 40     // kašnjenje između paljenja pojedine LED-ice (ms)
+#define ON_TIME_MS  3000   // Koliko dugo traka svijetli (3 sekunde)
+#define PULSE_DELAY 40     // Brzina paljenja/gašenja
+#define LDR_THRESHOLD 400  // Granica mraka (manje = mračnije). Podesi po potrebi!
 
 // ----- GLOBALNE VARIJABLE -----
 CRGB leds[NUM_LEDS];
 unsigned long lastMotionTime = 0;
 bool ledsOn = false;
-int currentBrightness = BRIGHTNESS;
 
 void setup() {
   pinMode(PIR_PIN, INPUT);
+  
+  // Inicijalizacija FastLED
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-  FastLED.setBrightness(BRIGHTNESS);
-
-  turnOffStripInstant();  // u startu sve ugašeno
+  
+  // Početno gašenje
+  turnOffStripInstant();
+  
+  // Serial monitor za kalibraciju (opcionalno, otvori ga na 9600 baud)
+  Serial.begin(9600);
 }
 
 void loop() {
-  // Čitanje potenciometra i podešavanje svjetline
+  // 1. Čitanje senzora
   int potValue = analogRead(POT_PIN);
-  currentBrightness = map(potValue, 0, 1023, 0, 255);  // mapiraj 0-1023 na 0-255
-  FastLED.setBrightness(currentBrightness);
-  
+  int ldrValue = analogRead(LDR_PIN);
   int pirState = digitalRead(PIR_PIN);
 
-  // Detekcija pokreta
-  if (pirState == HIGH) {
+  // Mapiranje svjetline putem potenciometra (0-255)
+  int currentBrightness = map(potValue, 0, 1023, 0, 255);
+  FastLED.setBrightness(currentBrightness);
+
+  // Ispis vrijednosti u Serial Monitor (pomaže kod podešavanja osjetljivosti)
+  // Serial.print("LDR: "); Serial.println(ldrValue);
+
+  // 2. Logika paljenja: Pokret + Mrak
+  if (pirState == HIGH && ldrValue < LDR_THRESHOLD) {
     lastMotionTime = millis();
     if (!ledsOn) {
-      pulseOnStrip();   // pokreni "puls" paljenja
+      pulseOnStrip();
       ledsOn = true;
     }
   }
 
-  // Nakon isteka vremena bez pokreta – ugasi traku
+  // 3. Ako je upaljeno, osvježavaj svjetlinu (ako vrtiš potenciometar dok svijetli)
+  if (ledsOn) {
+    FastLED.show();
+  }
+
+  // 4. Logika gašenja nakon isteka vremena
   if (ledsOn && (millis() - lastMotionTime >= ON_TIME_MS)) {
-    pulseOffStrip();    // efekt gašenja (jedna po jedna gasi)
+    pulseOffStrip();
     ledsOn = false;
   }
 
@@ -55,23 +70,14 @@ void loop() {
 
 // ----- FUNKCIJE -----
 
-// Puls paljenja – LED-ice se pale jedna po jedna
 void pulseOnStrip() {
-  // prvo sve ugasi
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Black;
-  }
-  FastLED.show();
-
-  // zatim pali jednu po jednu
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Blue;  // promijeni boju po želji: CRGB::Red, CRGB::Blue, ...
+    leds[i] = CRGB::Blue; // Možeš staviti i CRGB::White za klasično svjetlo
     FastLED.show();
     delay(PULSE_DELAY);
   }
 }
 
-// Puls gašenja – LED-ice se gase jedna po jedna (od kraja prema početku)
 void pulseOffStrip() {
   for (int i = NUM_LEDS - 1; i >= 0; i--) {
     leds[i] = CRGB::Black;
@@ -80,10 +86,7 @@ void pulseOffStrip() {
   }
 }
 
-// Instant gašenje (bez efekta) – koristi se samo na početku
 void turnOffStripInstant() {
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Black;
-  }
+  FastLED.clear();
   FastLED.show();
 }
